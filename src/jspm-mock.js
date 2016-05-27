@@ -1,7 +1,5 @@
 'use strict'
 
-import Fs from 'fs'
-import Path from 'path'
 import Exit from 'exit'
 import _ from 'lodash'
 

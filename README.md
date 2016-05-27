@@ -3,7 +3,7 @@ The "jspm-mock" module swaps any jspm module with a fake alternative. Essential 
 
 ## Installation
 ```bash
-npm install --save-dev jspm-mock
+jspm install npm:jspm-mock --dev
 ```
 * Note: This package assumes that you already have a working copy of [jspm](https://github.com/jspm/jspm-cli) installed.
 
@@ -46,6 +46,6 @@ MyModule() // works
 var MyModule = jspmMock.get('fs')
 // the "MyModule" variable is not a function. It's an object with the property of "default"
 MyModule.default() // is the same as "MyModule()" above.
-// this addtional property (i.e. default) will vary depending on your export method and 
+// this addtional property (i.e. default) will vary depending on your export method and
 // the type of module being used. When in doubt, inspect the returned value!
 ```

@@ -1,12 +1,12 @@
 {
   "name": "jspm-mock",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "The \"jspm-mock\" module swaps any jspm module with a fake alternative.",
   "main": "lib/jspm-mock.js",
+  "registry": "npm",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel src --out-dir lib",
-    "prepublish": "npm run build"
+    "build": "babel src --out-dir lib"
   },
   "repository": {
     "type": "git",
