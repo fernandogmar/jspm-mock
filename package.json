@@ -1,6 +1,6 @@
 {
   "name": "jspm-mock",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "description": "The \"jspm-mock\" module swaps any jspm module with a fake alternative.",
   "main": "lib/jspm-mock.js",
   "registry": "npm",
