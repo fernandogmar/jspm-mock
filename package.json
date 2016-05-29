@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "exit": "^0.1.2",
-    "lodash": "^4.13.1"
+    "lodash": "^4.13.1",
+    "tosource": "^1.0.0"
   }
 }

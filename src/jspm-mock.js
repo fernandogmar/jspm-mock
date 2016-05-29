@@ -1,79 +1,61 @@
 'use strict'
 
 import Exit from 'exit'
+import ToSource from 'tosource'
 import _ from 'lodash'
 
-function Private(opts) {
-    try { this.init(opts) } catch (e) { this.handleError(e) }
+function Private() {
+    try { this.init() } catch (e) { this.handleError(e) }
     return this
 }
 
 Private.prototype = {
     namespace: 'jspm-mock',
-    init: function (opts) {
-        if (typeof System !== 'object') {
-            throw new Error(`
-                Please make sure "jspm" is installed.
-                Global variable "System" is not an object: ${System}
-            `)
-        }
-        if (opts && !_.isObject(opts)) {
-            throw new Error(`
-                Please provide a valid configuration.
-                Value received is not an object: ${opts}
-            `)
-        }
+    init: function () {
         this.mocks = {}
     },
-    saveModule: function (module, moduleName) {
-        this.mocks[System.normalizeSync(moduleName)] = module
+    mockFromObject: function (module, fakeModule) {
+        this.mockFromString(module, 'module.exports = ' + ToSource(fakeModule))
     },
-    path: function (realModule, fakeModule) {
-        if (typeof realModule !== 'string' || typeof fakeModule !== 'string') {
-            throw new Error(`
-                Please provide a valid path.
-                Values received are not a string: ${realModule} | ${fakeModule}
-            `)
-        }
-        var promise = System
-            .import(System.normalizeSync(fakeModule))
-            .catch(this.handleError)
-            .then(module => {
-                this.saveModule(module, realModule)
-                return true
-            })
-        return promise
-    },
-    source: function (realModule, fakeSource) {
-        if (typeof realModule !== 'string' || typeof fakeSource !== 'string') {
-            throw new Error(`
-                Please provide a valid arguments.
-                Values received are not a string: ${realModule} | ${fakeSource}
-            `)
-        }
-        var fakeModule = System.normalizeSync(this.namespace + '-' + realModule)
-        if (System.has(fakeModule)) {
-            System.delete(fakeModule)
-        }
-        System.define(fakeModule, fakeSource)
-        var promise = System
-            .import(fakeModule)
-            .catch(this.handleError)
-            .then(module => {
-                this.saveModule(module.module.module, realModule)
-                return true
-            })
-        return promise
+    mockFromString: function (module, fakeSource) {
+        this.reset(module)
+        module = System.normalizeSync(module)
+        System.define(module, fakeSource);
+        this.mocks[module] = true
     },
     get: function (module) {
-        var moduleName = System.normalizeSync(module)
-        if (!this.mocks[moduleName]) {
-            throw new Error(`
-                Please provide a valid arguments.
-                Values received are not a string: ${realModule} | ${fakeSource}
-            `)
+        module = System.normalizeSync(module);
+        if (!this.mocks[module]) {
+            this.reset(module)
         }
-        return this.mocks[moduleName]
+        return System
+            .import(module)
+            .catch(this.handleError)
+            .then(this.getModuleContent)
+    },
+    getModuleContent: function (Module) {
+        var moduleContent
+        if (Module.module && Module.module.module) {
+            moduleContent = Module.module.module
+        } else {
+            moduleContent = Module
+        }
+        if (moduleContent.default) {
+            moduleContent = moduleContent.default
+            if (moduleContent.default) {
+                moduleContent = moduleContent.default
+            }
+        }
+        return moduleContent
+    },
+    reset: function (module, userTriggered) {
+        module = System.normalizeSync(module)
+        if (userTriggered) {
+            this.mocks[module] = false
+        }
+        if (System.has(module)) {
+            System.delete(module);
+        }
     },
     handleError: function (err, warning) {
         if (warning) {
@@ -86,20 +68,38 @@ Private.prototype = {
 }
 
 var Public = {
-    path: function (realModule, fakeModule) {
-        return this.__private__.path.apply(this.__private__, arguments)
+    get: function get(module) {
+        return this.__private__.get.apply(this.__private__, arguments);
     },
-    source: function (realModule, fakeSource) {
-        return this.__private__.source.apply(this.__private__, arguments)
+    mock: function mock(module, fake) {
+        if (!_.isString(module)) {
+            throw new Error(`
+                Please provide a valid module for mocking (1st argument).
+                Value received is not a string: ${module}
+            `)
+        }
+        var __private__ = this.__private__
+        if (_.isObject(fake)) {
+            return __private__.mockFromObject.apply(__private__, arguments);
+        } else if (_.isString(fake)) {
+            return __private__.mockFromString.apply(__private__, arguments);
+        } else {
+            throw new Error(`
+                Please provide a valid mock (2nd argument).
+                Value received is not a string or object: ${fake}
+            `)
+        }
     },
-    get: function (module) {
-        return this.__private__.get.apply(this.__private__, arguments)
+    unmock: function unmock(module) {
+        var args = _.values(arguments)
+        args[1] = true
+        return this.__private__.reset.apply(this.__private__, args);
     }
-}
+};
 
-export default (function (opts) {
+export default (function () {
     var api = Public
-    var privateInstance = new Private(opts)
+    var privateInstance = new Private()
     api.__private__ = privateInstance
     return Object.freeze(api)
 }())
