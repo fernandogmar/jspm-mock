@@ -5,13 +5,18 @@ The "jspm-mock" module swaps any jspm module with a fake alternative. Essential 
 ```bash
 jspm install npm:jspm-mock --dev
 ```
-* Note: This package assumes that you already have a working copy of [jspm](https://github.com/jspm/jspm-cli) installed.
+<sub>* Note: This package assumes that you already have a working copy of [jspm](https://github.com/jspm/jspm-cli) installed.</sub>
 
 ## Usage
 Import inside jspm environment (i.e. specs):
 ```js
 import jspmMock from 'jspm-mock'
 ```
+Get modules
+```js
+jspmMock.get('fs')
+```
+<sub>* Note: All modules except `jspm-mock` must be imported via `jspmMock.get`. Modules do NOT have to be imported before calling `jspmMock.mock`.</sub>
 
 Mock using functions:
 ```js
