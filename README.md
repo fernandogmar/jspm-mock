@@ -8,44 +8,60 @@ jspm install npm:jspm-mock --dev
 * Note: This package assumes that you already have a working copy of [jspm](https://github.com/jspm/jspm-cli) installed.
 
 ## Usage
-Mock using paths:
+Import inside jspm environment (i.e. specs):
 ```js
-jspmMock
-    .path('fs', './my-fake-fs-file')
-    .then(() => {
-        var module = jspmMock.get('fs')
-        console.log('module', module)
-    })
-    .catch(console.log)
+import jspmMock from 'jspm-mock'
+```
+
+Mock using functions:
+```js
+jspmMock.mock('fs', function () {
+    console.log("Testing FAKE function!")
+})
+//  same as...
+//  jspmMock.mock('fs', function () {
+//      default:  function () {
+//          console.log("Testing FAKE function!")
+//      }
+//  })
+jspmMock.get('fs').then(module => {
+    console.log('module()', module())
+})
+.catch(console.error)
+```
+
+Mock using objects:
+```js
+jspmMock.mock('fs', {
+    actionOne: function () {
+        console.log("Testing FAKE function object one!")
+    },
+    actionTwo: function () {
+        console.log("Testing FAKE function object two!")
+    }
+})
+jspmMock.get('fs').then(module => {
+    console.log('module.actionOne()', module.actionOne())
+    console.log('module.actionTwo()', module.actionTwo())
+})
+.catch(console.error)
 ```
 
 Mock using raw sources:
 ```js
-jspmMock
-    .source(
-        'fs',
-        `export default function () {
-            console.log('Hello from fake module!')
-        }`
-    )
-    .then(() => {
-        var module = jspmMock.get('fs')
-        console.log('module', module)
-    })
-    .catch(console.log)
+jspmMock.mock(
+    'fs',
+    `export default function () {
+        console.log('Hello from fake module!')
+    }`
+)
+jspmMock.get('fs').then(module => {
+    console.log('module()', module())
+})
+.catch(console.error)
 ```
 
-## Worth Noting
-Since modules are not being imported through their conventional means, the main functions might not be immidiately present in the returned variable. For example:
+Unmock when the time is right:
 ```js
-// in esm format
-import MyModule from 'somewhere'
-// one expects the default import value to be the default export
-MyModule() // works
-// however when importing with jspmMock, this won't be the case
-var MyModule = jspmMock.get('fs')
-// the "MyModule" variable is not a function. It's an object with the property of "default"
-MyModule.default() // is the same as "MyModule()" above.
-// this addtional property (i.e. default) will vary depending on your export method and
-// the type of module being used. When in doubt, inspect the returned value!
+jspmMock.unmock('fs')
 ```
