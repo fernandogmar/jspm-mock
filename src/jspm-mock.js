@@ -40,12 +40,6 @@ Private.prototype = {
         } else {
             moduleContent = Module
         }
-        if (moduleContent.default) {
-            moduleContent = moduleContent.default
-            if (moduleContent.default) {
-                moduleContent = moduleContent.default
-            }
-        }
         return moduleContent
     },
     reset: function (module, userTriggered) {
