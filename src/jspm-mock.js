@@ -1,7 +1,6 @@
 'use strict'
 
 import Exit from 'exit'
-import ToSource from 'tosource'
 import _ from 'lodash'
 
 function Private() {
@@ -15,13 +14,10 @@ Private.prototype = {
         this.mocks = {}
     },
     mockFromObject: function (module, fakeModule) {
-        this.mockFromString(module, 'module.exports = ' + ToSource(fakeModule))
-    },
-    mockFromString: function (module, fakeSource) {
-        this.reset(module)
-        module = System.normalizeSync(module)
-        System.define(module, fakeSource);
-        this.mocks[module] = true
+        this.reset(module);
+        module = System.normalizeSync(module);
+        System.set(module, System.newModule(fakeModule));
+        this.mocks[module] = true;
     },
     get: function (module) {
         module = System.normalizeSync(module);
@@ -75,8 +71,6 @@ var Public = {
         var __private__ = this.__private__
         if (_.isObject(fake)) {
             return __private__.mockFromObject.apply(__private__, arguments);
-        } else if (_.isString(fake)) {
-            return __private__.mockFromString.apply(__private__, arguments);
         } else {
             throw new Error(`
                 Please provide a valid mock (2nd argument).
