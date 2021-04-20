@@ -57,3 +57,29 @@ Unmock when the time is right:
 ```js
 jspmMock.unmock('fs')
 ```
+
+Mock, import and unmock:
+```js
+
+const mocks = {
+    'fs1': {
+        actionOne: function () {
+            console.log("Testing FAKE function object one!")
+        }
+    },
+    'fs2': {
+        actionTwo: function () {
+            console.log("Testing FAKE function object two!")
+        }
+    }
+}
+
+const unmock = jspmMock.mockImport(mocks)(
+    ['fs1', 'fs2'], ([{actionOne}, {actionTwo}]) =>  {
+        console.log('fs1.actionOne()', actionOne())
+        console.log('fs2.actionTwo()', actionTwo())
+
+        unmock()
+    })
+)
+```

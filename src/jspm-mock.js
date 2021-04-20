@@ -85,9 +85,41 @@ var Public = {
     }
 };
 
+var Extra = {
+    mockImport: function mockImport(mocks) {
+        const jspmMock = this;
+        const mocked_modules = jspmMock.mockModules(mocks)
+
+        return function importPaths(paths, callback) {
+            if(paths && paths.length) {
+                Promise.all(
+                    paths.map(path => jspmMock.get(path))
+                ).then(callback)
+            }
+
+            return () => jspmMock.unmockModules(mocked_modules)
+        }
+    },
+    mockModules: function mockModules(mocks) {
+        const jspmMock = this;
+        return mocks && Object.entries(mocks).map(
+            ([module_name, module_mock]) => {
+                jspmMock.mock(module_name, module_mock)
+                return module_name
+            }
+        )
+    },
+    unmockModules: function unmockModules(mocked_modules) {
+        const jspmMock = this;
+        return (mocked_modules && mocked_modules.length) ?
+            () => mocked_modules.forEach(jspmMock.unmock) :
+            () => {}
+    }
+}
+
 export default (function () {
     var api = Public
     var privateInstance = new Private()
     api.__private__ = privateInstance
-    return Object.freeze(api)
+    return Object.freeze(Object.assign({}, api, Extra))
 }())
