@@ -13,16 +13,16 @@ Private.prototype = {
     init: function () {
         this.mocks = {}
     },
-    mockFromObject: function (module, fakeModule) {
-        this.reset(module);
-        module = System.normalizeSync(module);
+    mockFromObject: async function (module, fakeModule) {
+        await this.reset(module);
+        module = await System.normalize(module);
         System.set(module, System.newModule(fakeModule));
         this.mocks[module] = true;
     },
-    get: function (module) {
-        module = System.normalizeSync(module);
+    get: async function (module) {
+        module = await System.normalize(module);
         if (!this.mocks[module]) {
-            this.reset(module)
+            await this.reset(module)
         }
         return System
             .import(module)
@@ -38,8 +38,8 @@ Private.prototype = {
         }
         return moduleContent
     },
-    reset: function (module, userTriggered) {
-        module = System.normalizeSync(module)
+    reset: async function (module, userTriggered) {
+        module = await System.normalize(module)
         if (userTriggered) {
             this.mocks[module] = false
         }
