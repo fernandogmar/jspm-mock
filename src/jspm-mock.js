@@ -87,7 +87,7 @@ var Public = {
 
 var Extra = {
     mockImport: function mockImport(mocks) {
-        const jspmMock = this;
+        const jspmMock = this
         const mocked_modules = jspmMock.mockModules(mocks)
 
         return function importPaths(paths, callback) {
@@ -101,7 +101,7 @@ var Extra = {
         }
     },
     mockModules: function mockModules(mocks) {
-        const jspmMock = this;
+        const jspmMock = this
         return mocks && Object.entries(mocks).map(
             ([module_name, module_mock]) => {
                 jspmMock.mock(module_name, module_mock)
@@ -110,10 +110,12 @@ var Extra = {
         )
     },
     unmockModules: function unmockModules(mocked_modules) {
-        const jspmMock = this;
-        return (mocked_modules && mocked_modules.length) ?
-            () => mocked_modules.forEach(jspmMock.unmock) :
-            () => {}
+        const jspmMock = this
+        const unmock = jspmMock.unmock.bind(jspmMock);
+
+        if (mocked_modules && mocked_modules.length) {
+            return Promise.all(mocked_modules.map(unmock))
+        }
     }
 }
 
