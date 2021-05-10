@@ -3,28 +3,31 @@
 import Exit from 'exit'
 import _ from 'lodash'
 
-function Private() {
-    try { this.init() } catch (e) { this.handleError(e) }
+function Private(system) {
+    try { this.init(system) } catch (e) { this.handleError(e) }
     return this
 }
 
 Private.prototype = {
     namespace: 'jspm-mock',
-    init: function () {
+    init: function (system) {
         this.mocks = {}
+        this._System = system || System;// we could specify a concrete SystemJS loader
     },
     mockFromObject: async function (module, fakeModule) {
+        const { _System } = this
         await this.reset(module);
-        module = await System.normalize(module);
-        System.set(module, System.newModule(fakeModule));
+        module = await _System.normalize(module);
+        _System.set(module, _System.newModule(fakeModule));
         this.mocks[module] = true;
     },
     get: async function (module) {
-        module = await System.normalize(module);
+        const { _System } = this
+        module = await _System.normalize(module);
         if (!this.mocks[module]) {
             await this.reset(module)
         }
-        return System
+        return _System
             .import(module)
             .catch(this.handleError)
             .then(this.getModuleContent)
@@ -39,12 +42,13 @@ Private.prototype = {
         return moduleContent
     },
     reset: async function (module, userTriggered) {
-        module = await System.normalize(module)
+        const { _System } = this
+        module = await _System.normalize(module)
         if (userTriggered) {
             this.mocks[module] = false
         }
-        if (System.has(module)) {
-            System.delete(module);
+        if (_System.has(module)) {
+            _System.delete(module);
         }
     },
     handleError: function (err, warning) {
@@ -119,9 +123,9 @@ var Extra = {
     }
 }
 
-export default (function () {
+export default function jspmMockFactory(system) {
     var api = Public
-    var privateInstance = new Private()
+    var privateInstance = new Private(system)
     api.__private__ = privateInstance
     return Object.freeze(Object.assign({}, api, Extra))
-}())
+}
