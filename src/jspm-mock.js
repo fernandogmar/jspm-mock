@@ -16,7 +16,7 @@ Private.prototype = {
     mockFromObject: async function (module, fakeModule) {
         await this.reset(module);
         module = await System.normalize(module);
-        System.set(module, System.newModule(fakeModule));
+        System.registry.set(module, System.newModule(fakeModule));
         this.mocks[module] = true;
     },
     get: async function (module) {
@@ -43,8 +43,8 @@ Private.prototype = {
         if (userTriggered) {
             this.mocks[module] = false
         }
-        if (System.has(module)) {
-            System.delete(module);
+        if (System.registry.has(module)) {
+            System.registry.delete(module);
         }
     },
     handleError: function (err, warning) {
